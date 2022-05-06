@@ -42,7 +42,9 @@ jobs:
         mkdir antsbin
         cd antsbin
         # TODO: check if cmake picks up CMAKE_CXX_FLAGS without being told about it
+        # NB: `BUILD_TESTING=OFF` fixes https://github.com/ANTsX/ANTs/issues/1236
         cmake \
+         -DBUILD_TESTING=OFF \
          -DBUILD_SHARED_LIBS=OFF \
          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
          ../
@@ -140,7 +142,9 @@ jobs:
       run: |
         mkdir antsbin
         cd antsbin
+        # NB: `BUILD_TESTING=OFF` fixes https://github.com/ANTsX/ANTs/issues/1236
         cmake \
+         -DBUILD_TESTING=OFF \
          -DBUILD_SHARED_LIBS=OFF \
          ../
     - name: make
