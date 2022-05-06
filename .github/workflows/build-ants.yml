@@ -37,20 +37,6 @@ jobs:
     - name: Patch in fix for insecure git:// protocol
       run: |
         perl -pi -e 's/http instead." ON\)/http instead." OFF\)/g' SuperBuild.cmake
-    - name: context
-      run: |
-        set -x
-        set
-        pwd
-        whoami
-        hostname || true
-        df -h || true
-        uname -a
-        gcc -v
-        cmake --version
-        ifconfig
-        curl ifconfig.me
-      continue-on-error: true
     - name: cmake generate
       run: |
         mkdir antsbin
