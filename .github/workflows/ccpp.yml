@@ -24,7 +24,14 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         echo "CMAKE_CXX_FLAGS=-mmacosx-version-min=10.12" >> $GITHUB_ENV
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
+      with:
+        repository: ANTsX/ANTs
+        # NB: This commit mirrors the state of the kousu/ANTs repository
+        #     at the time of https://github.com/kousu/ANTs/pull/5. But,
+        #     it can (and should) be replaced with the option to specify
+        #     a commit manually via workflow_dispatch.
+        ref: b37e8b56e4e518b0f2947f80d0e3701a5ddfe120
     - name: context
       run: |
         set -x
@@ -111,7 +118,14 @@ jobs:
         OS="${{ matrix.os }}"
         OS=$(echo "$OS" | sed s/://)
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
+      with:
+        repository: ANTsX/ANTs
+        # NB: This commit mirrors the state of the kousu/ANTs repository
+        #     at the time of https://github.com/kousu/ANTs/pull/5. But,
+        #     it can (and should) be replaced with the option to specify
+        #     a commit manually via workflow_dispatch.
+        ref: b37e8b56e4e518b0f2947f80d0e3701a5ddfe120
     - name: context
       run: |
         set -x
