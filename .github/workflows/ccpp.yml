@@ -19,12 +19,11 @@ jobs:
       run: |
         OS="${{ matrix.os }}"
         OS=$(echo "$OS" | sed s/://)
-        # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
-        echo "::set-env name=ARTIFACT::$OS"
+        echo "ARTIFACT=$OS" >> $GITHUB_ENV
     - name: Downgrade OS X Version
       if: matrix.os == 'macos-latest'
       run: |
-        echo "::set-env name=CMAKE_CXX_FLAGS::-mmacosx-version-min=10.12"
+        echo "CMAKE_CXX_FLAGS=-mmacosx-version-min=10.12" >> $GITHUB_ENV
     - uses: actions/checkout@v1
     - name: context
       run: |
@@ -111,8 +110,7 @@ jobs:
       run: |
         OS="${{ matrix.os }}"
         OS=$(echo "$OS" | sed s/://)
-        # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
-        echo "::set-env name=ARTIFACT::$OS"
+        echo "ARTIFACT=$OS" >> $GITHUB_ENV
     - uses: actions/checkout@v1
     - name: context
       run: |
