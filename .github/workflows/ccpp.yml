@@ -89,7 +89,7 @@ jobs:
   build-manylinuxes: # Github only supports Ubuntu natively; for other Linuxes, we need to use Docker
     strategy:
       matrix:
-        os: ['centos:7', 'centos:8', 'archlinux']
+        os: ['centos:7', 'quay.io/centos/centos:stream8', 'archlinux']
     runs-on: ubuntu-latest
     container: ${{ matrix.os }}
     steps:
@@ -98,7 +98,7 @@ jobs:
       run: |
         yum install -y make gcc gcc-c++ git zlib-devel
     - name: install centos toolchain
-      if: contains(matrix.os, 'centos:8')
+      if: contains(matrix.os, 'centos:stream8')
       run: |
         yum install -y cmake
     - name: install centos toolchain
