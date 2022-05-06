@@ -1,0 +1,279 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master, matrix-build ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    # first, rewrite OS names to be safe for github artifacts.
+    - name: names
+      run: |
+        OS="${{ matrix.os }}"
+        OS=$(echo "$OS" | sed s/://)
+        # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+        echo "::set-env name=ARTIFACT::$OS"
+    - name: Downgrade OS X Version
+      if: matrix.os == 'macos-latest'
+      run: |
+        echo "::set-env name=CMAKE_CXX_FLAGS::-mmacosx-version-min=10.12"
+    - uses: actions/checkout@v1
+    - name: context
+      run: |
+        set -x
+        set
+        pwd
+        whoami
+        hostname || true
+        df -h || true
+        uname -a
+        gcc -v
+        cmake --version
+        ifconfig
+        curl ifconfig.me
+      continue-on-error: true
+    - name: cmake generate
+      run: |
+        mkdir antsbin
+        cd antsbin
+        # TODO: check if cmake picks up CMAKE_CXX_FLAGS without being told about it
+        cmake \
+         -DBUILD_SHARED_LIBS=OFF \
+         -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+         ../
+    - name: make
+      working-directory: antsbin
+      run: |
+        make VERBOSE=1 -j 4
+      timeout-minutes: 300
+      # for debugging, don't let a crash/timeout here fail the whole build
+      # (github CI seems glitchy about giving reliable output about what happened on timeouts)
+      continue-on-error: true
+    - name: pre-package
+      run: |
+        mkdir fakeroot/
+        cd antsbin/ANTS-build
+        make VERBOSE=1 -j 4 DESTDIR="../../fakeroot" install
+      continue-on-error: true
+    - name: package
+      run: |
+        # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
+        mkdir sct-apps/
+        cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
+      continue-on-error: true
+    - name: results (DEBUG)
+      run: find .
+    - name: Upload result
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: sct-apps_${{ env.ARTIFACT }}
+        #path: fakeroot/ # this is 2.3G large in this build
+        path: sct-apps_${{ env.ARTIFACT }}.tar.gz
+
+  build-manylinuxes: # Github only supports Ubuntu natively; for other Linuxes, we need to use Docker
+    strategy:
+      matrix:
+        os: ['centos:7', 'centos:8', 'archlinux']
+    runs-on: ubuntu-latest
+    container: ${{ matrix.os }}
+    steps:
+    - name: install centos toolchain
+      if: contains(matrix.os, 'centos')
+      run: |
+        yum install -y make gcc gcc-c++ git zlib-devel
+    - name: install centos toolchain
+      if: contains(matrix.os, 'centos:8')
+      run: |
+        yum install -y cmake
+    - name: install centos toolchain
+      if: contains(matrix.os, 'centos:7')
+      run: |
+        # centos7 has a new enough cmake available, but it's not in the default repo
+        yum install -y epel-release
+        yum install -y cmake3
+        ln -s /usr/bin/cmake3 /usr/bin/cmake # make it the default
+    - name: install archlinux toolchain
+      if: contains(matrix.os, 'archlinux')
+      run: |
+        pacman -Syy --noconfirm make cmake gcc git libffi
+    # first, rewrite OS names to be safe for github artifacts.
+    - name: names
+      run: |
+        OS="${{ matrix.os }}"
+        OS=$(echo "$OS" | sed s/://)
+        # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+        echo "::set-env name=ARTIFACT::$OS"
+    - uses: actions/checkout@v1
+    - name: context
+      run: |
+        set -x
+        set
+        pwd
+        whoami
+        hostname || true
+        df -h || true
+        uname -a
+        gcc -v
+        cmake --version
+        ifconfig
+        curl ifconfig.me
+      continue-on-error: true
+    - name: cmake generate
+      run: |
+        mkdir antsbin
+        cd antsbin
+        cmake \
+         -DBUILD_SHARED_LIBS=OFF \
+         ../
+    - name: make
+      working-directory: antsbin
+      run: |
+        make VERBOSE=1 -j 4
+      timeout-minutes: 300
+      # for debugging, don't let a crash/timeout here fail the whole build
+      # (github CI seems glitchy about giving reliable output about what happened on timeouts)
+      continue-on-error: true
+    - name: pre-package
+      run: |
+        mkdir fakeroot/
+        cd antsbin/ANTS-build
+        make VERBOSE=1 -j 4 DESTDIR="../../fakeroot" install
+      continue-on-error: true
+    - name: package
+      run: |
+        # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
+        mkdir sct-apps/
+        cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
+      continue-on-error: true
+    - name: results (DEBUG)
+      run: find .
+    - name: Upload result
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: sct-apps_${{ env.ARTIFACT }}
+        #path: fakeroot/ # this is 2.3G large in this build
+        path: sct-apps_${{ env.ARTIFACT }}.tar.gz
+
+  release:
+    needs: [build, build-manylinuxes]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # name the release with the run_id to allow multiple builds on the same branch/tag
+          # https://github.com/actions/create-release/issues/2#issuecomment-613591846
+          tag_name: ${{ github.ref }}-${{github.run_id }}
+          release_name: Release ${{ github.sha }}
+          draft: true
+          prerelease: true
+
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_centos7
+        continue-on-error: true
+      - name: checkin # DEBUG
+        run: find .
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./sct-apps_centos7/sct-apps_centos7.tar.gz
+          asset_name: sct-apps_centos7.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_centos8
+        continue-on-error: true
+      - name: checkin # DEBUG
+        run: find .
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./sct-apps_centos8/sct-apps_centos8.tar.gz
+          asset_name: sct-apps_centos8.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_archlinux
+        continue-on-error: true
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sct-apps_archlinux/sct-apps_archlinux.tar.gz
+          asset_name: sct-apps_archlinux.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_ubuntu-16.04
+        continue-on-error: true
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sct-apps_ubuntu-16.04/sct-apps_ubuntu-16.04.tar.gz
+          asset_name: sct-apps_ubuntu-16.04.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_ubuntu-18.04
+        continue-on-error: true
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sct-apps_ubuntu-18.04/sct-apps_ubuntu-18.04.tar.gz
+          asset_name: sct-apps_ubuntu-18.04.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_macos-latest
+        continue-on-error: true
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sct-apps_macos-latest/sct-apps_macos-latest.tar.gz
+          asset_name: sct-apps_macos-latest.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
