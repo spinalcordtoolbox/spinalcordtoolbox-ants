@@ -32,6 +32,11 @@ jobs:
         #     it can (and should) be replaced with the option to specify
         #     a commit manually via workflow_dispatch.
         ref: b37e8b56e4e518b0f2947f80d0e3701a5ddfe120
+    # The step below sets an option inside the cmake file to use the `https` protocol, which addresses:
+    # https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git
+    - name: Patch in fix for insecure git:// protocol
+      run: |
+        perl -pi -e 's/http instead." ON\)/http instead." OFF\)/g' SuperBuild.cmake
     - name: context
       run: |
         set -x
@@ -126,6 +131,11 @@ jobs:
         #     it can (and should) be replaced with the option to specify
         #     a commit manually via workflow_dispatch.
         ref: b37e8b56e4e518b0f2947f80d0e3701a5ddfe120
+    # The step below sets an option inside the cmake file to use the `https` protocol, which addresses:
+    # https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git
+    - name: Patch in fix for insecure git:// protocol
+      run: |
+        perl -pi -e 's/http instead." ON\)/http instead." OFF\)/g' SuperBuild.cmake
     - name: context
       run: |
         set -x
