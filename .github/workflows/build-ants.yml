@@ -11,7 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-18.04, macos-latest]
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15]
     runs-on: ${{ matrix.os }}
     steps:
     # first, rewrite OS names to be safe for github artifacts.
@@ -21,7 +21,7 @@ jobs:
         OS=$(echo "$OS" | sed s/://)
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
     - name: Downgrade OS X Version
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-10.15'
       run: |
         echo "CMAKE_CXX_FLAGS=-mmacosx-version-min=10.12" >> $GITHUB_ENV
     - uses: actions/checkout@v3
@@ -277,7 +277,7 @@ jobs:
 
       - uses: actions/download-artifact@v1
         with:
-          name: sct-apps_macos-latest
+          name: sct-apps_macos-10.15
         continue-on-error: true
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -285,7 +285,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sct-apps_macos-latest/sct-apps_macos-latest.tar.gz
-          asset_name: sct-apps_macos-latest.tar.gz
+          asset_path: ./sct-apps_macos-10.15/sct-apps_macos-10.15.tar.gz
+          asset_name: sct-apps_macos-10.15.tar.gz
           asset_content_type: application/gzip
         continue-on-error: true
