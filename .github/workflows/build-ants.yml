@@ -1,8 +1,6 @@
 name: Build ANTs
 
 on:
-  push:
-    branches: [ master, matrix-build ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
