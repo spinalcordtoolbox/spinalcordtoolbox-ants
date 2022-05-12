@@ -70,6 +70,7 @@ jobs:
         mkdir sct-apps/
         cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        cp COPYING.txt sct-apps
         tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
       continue-on-error: true
     - name: results (DEBUG)
@@ -169,6 +170,7 @@ jobs:
         mkdir sct-apps/
         cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        cp COPYING.txt sct-apps
         tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
       continue-on-error: true
     - name: results (DEBUG)
