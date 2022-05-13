@@ -59,7 +59,7 @@ jobs:
     - name: make
       working-directory: antsbin
       run: |
-        make VERBOSE=1 -j 4 -k
+        MSBuild SuperBuild_ANTS.sln
       timeout-minutes: 300
       # for debugging, don't let a crash/timeout here fail the whole build
       # (github CI seems glitchy about giving reliable output about what happened on timeouts)
