@@ -56,10 +56,14 @@ jobs:
          -DCMAKE_BUILD_TYPE=Release \
          -DCMAKE_CONFIGURATION_TYPES=Release \
          ../
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
     - name: make
       working-directory: antsbin
       run: |
-        MSBuild SuperBuild_ANTS.sln
+        msbuild ALL_BUILD.vcxproj -t:rebuild -verbosity:diag -property:Configuration=Release
       timeout-minutes: 300
       # for debugging, don't let a crash/timeout here fail the whole build
       # (github CI seems glitchy about giving reliable output about what happened on timeouts)
