@@ -45,6 +45,7 @@ jobs:
         # TODO: check if cmake picks up CMAKE_CXX_FLAGS without being told about it
         # NB: `BUILD_TESTING=OFF` fixes https://github.com/ANTsX/ANTs/issues/1236
         # NB: `-g "Unix Makefiles"` is needed to generate files for make (https://stackoverflow.com/a/59551107)
+        # NB: `CMAKE_CONFIGURATION_TYPES=Release` is needed on Windows to build the Release version (https://stackoverflow.com/a/20423820)
         cmake \
          -G "Unix Makefiles" \
          -DBUILD_TESTING=OFF \
@@ -52,6 +53,8 @@ jobs:
          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
          -DZLIB_INCLUDE_DIR=D:\lib\zlib \
          -DZLIB_LIBRARY=D:\lib\zlib\libz.dll.a \
+         -DCMAKE_BUILD_TYPE=Release \
+         -DCMAKE_CONFIGURATION_TYPES=Release \
          ../
     - name: make
       working-directory: antsbin
