@@ -70,17 +70,11 @@ jobs:
       # for debugging, don't let a crash/timeout here fail the whole build
       # (github CI seems glitchy about giving reliable output about what happened on timeouts)
       continue-on-error: true
-    - name: pre-package
-      run: |
-        mkdir fakeroot/
-        cd antsbin/ANTS-build
-        make VERBOSE=1 -j 4 DESTDIR="../../fakeroot" install
-      continue-on-error: true
     - name: package
       run: |
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        cp antsbin/ANTS-build/Examples/Release/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform}.exe sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
         cp COPYING.txt sct-apps
         tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
