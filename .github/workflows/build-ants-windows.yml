@@ -47,7 +47,6 @@ jobs:
         # NB: `-g "Unix Makefiles"` is needed to generate files for make (https://stackoverflow.com/a/59551107)
         # NB: `CMAKE_CONFIGURATION_TYPES=Release` is needed on Windows to build the Release version (https://stackoverflow.com/a/20423820)
         cmake \
-         -G "Unix Makefiles" \
          -DBUILD_TESTING=OFF \
          -DBUILD_SHARED_LIBS=OFF \
          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
