@@ -62,6 +62,7 @@ jobs:
         msbuild-architecture: x64
     - name: make
       working-directory: antsbin
+      shell: cmd
       run: |
         msbuild ALL_BUILD.vcxproj -t:rebuild -verbosity:diag -property:Configuration=Release
       timeout-minutes: 300
