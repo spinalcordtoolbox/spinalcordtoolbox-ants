@@ -27,6 +27,11 @@ jobs:
         OS="${{ matrix.os }}"
         OS=$(echo "$OS" | sed s/://)
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
+    - name: Install zlib
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: zlib
     - uses: actions/checkout@v3
       with:
         repository: ANTsX/ANTs
