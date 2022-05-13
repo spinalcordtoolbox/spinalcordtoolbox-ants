@@ -27,11 +27,6 @@ jobs:
         OS="${{ matrix.os }}"
         OS=$(echo "$OS" | sed s/://)
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
-    - name: Install zlib
-      uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: zlib
     - uses: actions/checkout@v3
       with:
         repository: ANTsX/ANTs
@@ -53,6 +48,8 @@ jobs:
          -DBUILD_TESTING=OFF \
          -DBUILD_SHARED_LIBS=OFF \
          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+         -DZLIB_INCLUDE_DIR=D:\lib\zlib \
+         -DZLIB_LIBRARY=D:\lib\zlib\libz.dll.a \
          ../
     - name: make
       working-directory: antsbin
