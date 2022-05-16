@@ -182,8 +182,110 @@ jobs:
         #path: fakeroot/ # this is 2.3G large in this build
         path: sct-apps_${{ env.ARTIFACT }}.tar.gz
 
+  build-windows:
+    strategy:
+      matrix:
+        os: [ windows-2019 ]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+    # first, rewrite OS names to be safe for github artifacts.
+    - name: names
+      run: |
+        OS="${{ matrix.os }}"
+        OS=$(echo "$OS" | sed s/://)
+        echo "ARTIFACT=$OS" >> $GITHUB_ENV
+    - uses: actions/checkout@v3
+      with:
+        repository: ANTsX/ANTs
+        # NB: This commit mirrors the state of the kousu/ANTs repository
+        #     at the time of https://github.com/kousu/ANTs/pull/5.
+        ref: ${{ github.event.inputs.git_ref || 'b37e8b56e4e518b0f2947f80d0e3701a5ddfe120' }}
+    # The step below sets an option inside the cmake file to use the `https` protocol, which addresses:
+    # https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git
+    - name: Patch in fix for insecure git:// protocol
+      run: |
+        perl -pi -e 's/http instead." ON\)/http instead." OFF\)/g' SuperBuild.cmake
+
+    ########################################## START OF ITK WORKAROUND ###############################################
+    # ITK v5.1 has an upstream bug (https://github.com/InsightSoftwareConsortium/ITK/issues/1967) that prevents
+    # building ITK with MS Visual Studio 2019 (which is what the `windows-2019` GitHub Actions runner uses). This bug
+    # was fixed in ITK v5.2.
+    #
+    # Normally, to pull in an upstream fix, we would update ANTs, which in turn would update ITK (because the `make`
+    # step for ANTs clones ITK to a specific commit, hardcoded by ANTs in its External_ITKv5.cmake file). However,
+    # updating ANTs to pull in the ITK v5.2 fix has the side effect of changing the registration results on SCT's end.
+    #
+    # So, we need a way to apply a fix for the ITK issue that *doesn't* involve updating ANTs. Luckily, there is a
+    # quick and dirty workaround, described here: https://github.com/SuperElastix/SimpleElastix/pull/425#issuecomment-878516818
+    #
+    # In order to apply the workaround, we have to manually clone ITK ourselves (prior to the ANTs `make` step),
+    # then apply the fix, then continue on with building ANTs normally.
+    #
+    # TODO: Remove this fix after we update ANTs to a version that uses ITK v5.2 or higher.
+    ##################################################################################################################
+    - name: 'WORKAROUND: Manually clone ITK'
+      run: |
+        mkdir antsbin
+        cd antsbin
+        git clone https://github.com/InsightSoftwareConsortium/ITK.git ITKv5
+        cd ITKv5
+        git checkout 1e708db2f586997e408cfdc2cea5114ae5575892  # This commit corresponds to:
+        # https://github.com/ANTsX/ANTs/blob/b37e8b56e4e518b0f2947f80d0e3701a5ddfe120/SuperBuild/External_ITKv5.cmake#L154
+        # i.e. the ITK commit specified by the version of ANTs we're currently using.
+    - name: 'WORKAROUND: Apply fix for `lrintf` issue in ITK dependency'
+      run: sed -i '93,120d' antsbin/ITKv5/Modules/ThirdParty/OpenJPEG/src/openjpeg/opj_includes.h
+    - name: 'WORKAROUND: Skip ITK clone in Superbuild'
+      run: |
+        # These `sed` commands remove the git project settings from the `ExternalProject_Add` cmake function call
+        sed -i '/    GIT_REPOSITORY ${${proj}_REPOSITORY}/d' SuperBuild/External_ITKv5.cmake
+        sed -i '/    GIT_TAG ${${proj}_GIT_TAG}/d' SuperBuild/External_ITKv5.cmake
+    ########################################### END OF ITK WORKAROUND ################################################
+
+    - name: cmake generate
+      run: |
+        cd antsbin
+        # NB: `BUILD_TESTING=OFF` fixes https://github.com/ANTsX/ANTs/issues/1236
+        cmake \
+         -DBUILD_TESTING=OFF \
+         -DBUILD_SHARED_LIBS=OFF \
+         -DZLIB_INCLUDE_DIR=D:\lib\zlib \
+         -DZLIB_LIBRARY=D:\lib\zlib\libz.dll.a \
+         ../
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
+    - name: make
+      working-directory: antsbin
+      shell: cmd
+      run: |
+        msbuild ALL_BUILD.vcxproj -property:Configuration=Release
+      timeout-minutes: 300
+      # for debugging, don't let a crash/timeout here fail the whole build
+      # (github CI seems glitchy about giving reliable output about what happened on timeouts)
+      continue-on-error: true
+    - name: package
+      run: |
+        # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
+        mkdir sct-apps/
+        cp antsbin/ANTS-build/Examples/Release/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform}.exe sct-apps
+        (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        cp COPYING.txt sct-apps
+        tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
+      continue-on-error: true
+    - name: results (DEBUG)
+      run: find .
+    - name: Upload result
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: sct-apps_${{ env.ARTIFACT }}
+        path: sct-apps_${{ env.ARTIFACT }}.tar.gz
+
   release:
-    needs: [build, build-manylinuxes]
+    needs: [build, build-manylinuxes, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Create Release
@@ -291,5 +393,20 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./sct-apps_macos-10.15/sct-apps_macos-10.15.tar.gz
           asset_name: sct-apps_macos-10.15.tar.gz
+          asset_content_type: application/gzip
+        continue-on-error: true
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: sct-apps_windows-2019
+        continue-on-error: true
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sct-apps_windows-2019/sct-apps_windows-2019.tar.gz
+          asset_name: sct-apps_windows-2019.tar.gz
           asset_content_type: application/gzip
         continue-on-error: true
