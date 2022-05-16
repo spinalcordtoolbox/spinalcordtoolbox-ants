@@ -8,7 +8,7 @@ on:
       git_ref:
         description: 'Upstream ANTsX/ANTs commit ref to check out when building'
         required: true
-        default: 'bca6205c685784336c0bd17057cd99d8114e3a62'
+        default: 'b37e8b56e4e518b0f2947f80d0e3701a5ddfe120'
 
 jobs:
 
@@ -33,7 +33,7 @@ jobs:
         repository: ANTsX/ANTs
         # NB: This commit mirrors the state of the kousu/ANTs repository
         #     at the time of https://github.com/kousu/ANTs/pull/5.
-        ref: ${{ github.event.inputs.git_ref || 'bca6205c685784336c0bd17057cd99d8114e3a62' }}
+        ref: ${{ github.event.inputs.git_ref || 'b37e8b56e4e518b0f2947f80d0e3701a5ddfe120' }}
     # The step below sets an option inside the cmake file to use the `https` protocol, which addresses:
     # https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git
     - name: Patch in fix for insecure git:// protocol
@@ -121,7 +121,7 @@ jobs:
         repository: ANTsX/ANTs
         # NB: This commit mirrors the state of the kousu/ANTs repository
         #     at the time of https://github.com/kousu/ANTs/pull/5.
-        ref: ${{ github.event.inputs.git_ref || 'bca6205c685784336c0bd17057cd99d8114e3a62' }}
+        ref: ${{ github.event.inputs.git_ref || 'b37e8b56e4e518b0f2947f80d0e3701a5ddfe120' }}
     # The step below sets an option inside the cmake file to use the `https` protocol, which addresses:
     # https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git
     - name: Patch in fix for insecure git:// protocol
@@ -202,7 +202,7 @@ jobs:
         repository: ANTsX/ANTs
         # NB: This commit mirrors the state of the kousu/ANTs repository
         #     at the time of https://github.com/kousu/ANTs/pull/5.
-        ref: ${{ github.event.inputs.git_ref || 'bca6205c685784336c0bd17057cd99d8114e3a62' }}
+        ref: ${{ github.event.inputs.git_ref || 'b37e8b56e4e518b0f2947f80d0e3701a5ddfe120' }}
     # The step below sets an option inside the cmake file to use the `https` protocol, which addresses:
     # https://github.blog/2021-09-01-improving-git-protocol-security-github/#no-more-unauthenticated-git
     - name: Patch in fix for insecure git:// protocol
