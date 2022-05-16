@@ -257,8 +257,6 @@ jobs:
          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
          -DZLIB_INCLUDE_DIR=D:\lib\zlib \
          -DZLIB_LIBRARY=D:\lib\zlib\libz.dll.a \
-         -DCMAKE_BUILD_TYPE=Release \
-         -DCMAKE_CONFIGURATION_TYPES=Release \
          ../
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
