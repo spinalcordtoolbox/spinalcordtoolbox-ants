@@ -247,12 +247,10 @@ jobs:
     - name: cmake generate
       run: |
         cd antsbin
-        # TODO: check if cmake picks up CMAKE_CXX_FLAGS without being told about it
         # NB: `BUILD_TESTING=OFF` fixes https://github.com/ANTsX/ANTs/issues/1236
         cmake \
          -DBUILD_TESTING=OFF \
          -DBUILD_SHARED_LIBS=OFF \
-         -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
          -DZLIB_INCLUDE_DIR=D:\lib\zlib \
          -DZLIB_LIBRARY=D:\lib\zlib\libz.dll.a \
          ../
