@@ -7,7 +7,7 @@ This repository is used to build the 4 total ANTs binaries used by SCT:
 * `antsSliceRegularizedRegistration`
 * `antsComposeMultiTransform`
 
-These binaries are build across several different platforms provided by GitHub Action's CI runners.
+These binaries are built across several different platforms provided by GitHub Action's CI runners.
 
 ### Using this repo
 
