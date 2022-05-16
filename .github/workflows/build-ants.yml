@@ -249,8 +249,6 @@ jobs:
         cd antsbin
         # TODO: check if cmake picks up CMAKE_CXX_FLAGS without being told about it
         # NB: `BUILD_TESTING=OFF` fixes https://github.com/ANTsX/ANTs/issues/1236
-        # NB: `-g "Unix Makefiles"` is needed to generate files for make (https://stackoverflow.com/a/59551107)
-        # NB: `CMAKE_CONFIGURATION_TYPES=Release` is needed on Windows to build the Release version (https://stackoverflow.com/a/20423820)
         cmake \
          -DBUILD_TESTING=OFF \
          -DBUILD_SHARED_LIBS=OFF \
