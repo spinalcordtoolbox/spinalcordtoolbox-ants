@@ -15,7 +15,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     # first, rewrite OS names to be safe for github artifacts.
@@ -85,9 +85,7 @@ jobs:
   build-manylinuxes: # Github only supports Ubuntu natively; for other Linuxes, we need to use Docker
     strategy:
       matrix:
-        os: ['centos:7']  # 'quay.io/centos/centos:stream8', 'archlinux']
-        # 'centos:stream8' and 'archlinux' are currently broken. However, we don't currently use either build in our
-        # `spinalcordtoolbox-binaries` repo. So, we just temporarily disable for now.
+        os: ['quay.io/centos/centos:stream8']
     runs-on: ubuntu-latest
     container: ${{ matrix.os }}
     steps:
@@ -178,14 +176,14 @@ jobs:
     - name: Upload result
       uses: actions/upload-artifact@v4
       with:
-        name: sct-apps_${{ env.ARTIFACT }}
+        name: sct-apps_centos-8
         #path: fakeroot/ # this is 2.3G large in this build
-        path: sct-apps_${{ env.ARTIFACT }}.tar.gz
+        path: sct-apps_centos-8.tar.gz
 
   build-windows:
     strategy:
       matrix:
-        os: [ windows-2019 ]
+        os: [ windows-latest ]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -290,7 +288,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: sct-apps_centos7
+          name: sct-apps_centos-8
         continue-on-error: true
       - name: checkin # DEBUG
         run: find .
@@ -308,22 +306,17 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: sct-apps_ubuntu-20.04
+          name: sct-apps_ubuntu-latest
         continue-on-error: true
 
       - uses: actions/download-artifact@v4
         with:
-          name: sct-apps_ubuntu-18.04
+          name: sct-apps_macos-latest
         continue-on-error: true
 
       - uses: actions/download-artifact@v4
         with:
-          name: sct-apps_macos-10.15
-        continue-on-error: true
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: sct-apps_windows-2019
+          name: sct-apps_windows-latest
         continue-on-error: true
 
       - name: Create Release
@@ -338,4 +331,4 @@ jobs:
           name: Release ${{ github.sha }}
           draft: true
           prerelease: true
-          artifacts: 'sct-apps_centos7/sct-apps_centos7.tar.gz,sct-apps_ubuntu-20.04/sct-apps_ubuntu-20.04.tar.gz,sct-apps_ubuntu-18.04/sct-apps_ubuntu-18.04.tar.gz,sct-apps_macos-10.15/sct-apps_macos-10.15.tar.gz,sct-apps_windows-2019/sct-apps_windows-2019.tar.gz'
+          artifacts: 'sct-apps_centos-8/sct-apps_centos-8.tar.gz,sct-apps_ubuntu-latest/sct-apps_ubuntu-latest.tar.gz,sct-apps_macos-latest/sct-apps_macos-latest.tar.gz,sct-apps_windows-latest/sct-apps_windows-latest.tar.gz'
