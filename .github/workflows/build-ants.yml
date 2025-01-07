@@ -4,11 +4,6 @@ on:
   pull_request:
     branches: [ master ]
   workflow_dispatch:
-    inputs:
-      git_ref:
-        description: 'Upstream ANTsX/ANTs commit ref to check out when building'
-        required: true
-        default: 'b37e8b56e4e518b0f2947f80d0e3701a5ddfe120'
 
 jobs:
 
@@ -26,10 +21,22 @@ jobs:
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
     - name: package
       run: |
+        # download and extract pre-built ants
+        case "${{ env.ARTIFACT }}" in
+          ubuntu-latest)
+            URL="https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-ubuntu-22.04-X64-gcc.zip"
+            ;;
+          macos-latest)
+            URL="https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-macos-12-X64-clang.zip"
+            ;;
+          esac
+        curl -L "$URL" -o ants-unix.zip
+        unzip ants-unix.zip
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        cp ants-2.4.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
         (cd sct-apps; for i in *; do mv $i isct_$i; done)
+        curl https://raw.githubusercontent.com/ANTsX/ANTs/refs/heads/master/COPYING.txt -o COPYING.txt
         cp COPYING.txt sct-apps
         tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
       continue-on-error: true
@@ -49,14 +56,25 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.os }}
     steps:
+    - name: install centos toolchain
+      if: contains(matrix.os, 'centos:stream8')
+      run: |
+        # Sed commands come from https://archive.ph/FS47T
+        sed -i -e "s|mirrorlist=|#mirrorlist=|g" /etc/yum.repos.d/CentOS-*
+        sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
+        yum install -y gcc git curl unzip
     - name: package
       run: |
+        # download and extract pre-built ants
+        curl -L "https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-centos7-X64-gcc.zip" -o ants-centos.zip
+        unzip ants-centos.zip
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp antsbin/ANTS-build/Examples/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        cp ants-2.4.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        curl https://raw.githubusercontent.com/ANTsX/ANTs/refs/heads/master/COPYING.txt -o COPYING.txt
         cp COPYING.txt sct-apps
-        tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
+        tar -zcvf sct-apps_centos-8.tar.gz sct-apps/
       continue-on-error: true
     - name: results (DEBUG)
       run: find .
@@ -84,10 +102,13 @@ jobs:
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
     - name: package
       run: |
+        curl -L "https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-windows-2022-X64-VS2019.zip" -o ants-windows.zip
+        unzip ants-windows.zip
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp antsbin/ANTS-build/Examples/Release/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform}.exe sct-apps
+        cp ants-2.4.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform}.exe sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
+        curl https://raw.githubusercontent.com/ANTsX/ANTs/refs/heads/master/COPYING.txt -o COPYING.txt
         cp COPYING.txt sct-apps
         tar -zcvf sct-apps_${{ env.ARTIFACT }}.tar.gz sct-apps/
       continue-on-error: true
@@ -148,4 +169,4 @@ jobs:
           name: Release ${{ github.sha }}
           draft: true
           prerelease: true
-          artifacts: 'sct-apps_centos-8/sct-apps_centos-8.tar.gz,sct-apps_ubuntu-latest/sct-apps_ubuntu-latest.tar.gz,sct-apps_macos-latest/sct-apps_macos-latest.tar.gz,sct-apps_windows-latest/sct-apps_windows-latest.tar.gz'
+          artifacts: 'sct-apps_centos-8.tar.gz,sct-apps_ubuntu-latest.tar.gz,sct-apps_macos-latest.tar.gz,sct-apps_windows-latest.tar.gz'
