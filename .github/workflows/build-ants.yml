@@ -288,36 +288,12 @@ jobs:
     needs: [build, build-manylinuxes, build-windows]
     runs-on: ubuntu-latest
     steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          # name the release with the run_id to allow multiple builds on the same branch/tag
-          # https://github.com/actions/create-release/issues/2#issuecomment-613591846
-          tag_name: ${{ github.ref }}-${{github.run_id }}
-          release_name: Release ${{ github.sha }}
-          draft: true
-          prerelease: true
-
-
       - uses: actions/download-artifact@v4
         with:
           name: sct-apps_centos7
         continue-on-error: true
       - name: checkin # DEBUG
         run: find .
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./sct-apps_centos7/sct-apps_centos7.tar.gz
-          asset_name: sct-apps_centos7.tar.gz
-          asset_content_type: application/gzip
-        continue-on-error: true
 
 #      - uses: actions/download-artifact@v4
 #        with:
@@ -325,88 +301,41 @@ jobs:
 #        continue-on-error: true
 #      - name: checkin # DEBUG
 #        run: find .
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-#          asset_path: ./sct-apps_centos8/sct-apps_centos8.tar.gz
-#          asset_name: sct-apps_centos8.tar.gz
-#          asset_content_type: application/gzip
-#        continue-on-error: true
-#
 #      - uses: actions/download-artifact@v4
 #        with:
 #          name: sct-apps_archlinux
-#        continue-on-error: true
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: ./sct-apps_archlinux/sct-apps_archlinux.tar.gz
-#          asset_name: sct-apps_archlinux.tar.gz
-#          asset_content_type: application/gzip
 #        continue-on-error: true
 
       - uses: actions/download-artifact@v4
         with:
           name: sct-apps_ubuntu-20.04
         continue-on-error: true
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sct-apps_ubuntu-20.04/sct-apps_ubuntu-20.04.tar.gz
-          asset_name: sct-apps_ubuntu-20.04.tar.gz
-          asset_content_type: application/gzip
-        continue-on-error: true
 
       - uses: actions/download-artifact@v4
         with:
           name: sct-apps_ubuntu-18.04
-        continue-on-error: true
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sct-apps_ubuntu-18.04/sct-apps_ubuntu-18.04.tar.gz
-          asset_name: sct-apps_ubuntu-18.04.tar.gz
-          asset_content_type: application/gzip
         continue-on-error: true
 
       - uses: actions/download-artifact@v4
         with:
           name: sct-apps_macos-10.15
         continue-on-error: true
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sct-apps_macos-10.15/sct-apps_macos-10.15.tar.gz
-          asset_name: sct-apps_macos-10.15.tar.gz
-          asset_content_type: application/gzip
-        continue-on-error: true
 
       - uses: actions/download-artifact@v4
         with:
           name: sct-apps_windows-2019
         continue-on-error: true
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sct-apps_windows-2019/sct-apps_windows-2019.tar.gz
-          asset_name: sct-apps_windows-2019.tar.gz
-          asset_content_type: application/gzip
-        continue-on-error: true
+          # name the release with the run_id to allow multiple builds on the same branch/tag
+          # https://github.com/actions/create-release/issues/2#issuecomment-613591846
+          tag: ${{ github.ref }}-${{github.run_id }}
+          name: Release ${{ github.sha }}
+          draft: true
+          prerelease: true
+          artifacts: 'sct-apps_centos7/sct-apps_centos7.tar.gz,sct-apps_ubuntu-20.04/sct-apps_ubuntu-20.04.tar.gz,sct-apps_ubuntu-18.04/sct-apps_ubuntu-18.04.tar.gz,sct-apps_macos-10.15/sct-apps_macos-10.15.tar.gz,sct-apps_windows-2019/sct-apps_windows-2019.tar.gz'
