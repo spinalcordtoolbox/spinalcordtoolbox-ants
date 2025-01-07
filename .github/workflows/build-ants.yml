@@ -76,7 +76,7 @@ jobs:
     - name: results (DEBUG)
       run: find .
     - name: Upload result
-      uses: actions/upload-artifact@v2-preview
+      uses: actions/upload-artifact@v4
       with:
         name: sct-apps_${{ env.ARTIFACT }}
         #path: fakeroot/ # this is 2.3G large in this build
@@ -176,7 +176,7 @@ jobs:
     - name: results (DEBUG)
       run: find .
     - name: Upload result
-      uses: actions/upload-artifact@v2-preview
+      uses: actions/upload-artifact@v4
       with:
         name: sct-apps_${{ env.ARTIFACT }}
         #path: fakeroot/ # this is 2.3G large in this build
@@ -279,7 +279,7 @@ jobs:
     - name: results (DEBUG)
       run: find .
     - name: Upload result
-      uses: actions/upload-artifact@v2-preview
+      uses: actions/upload-artifact@v4
       with:
         name: sct-apps_${{ env.ARTIFACT }}
         path: sct-apps_${{ env.ARTIFACT }}.tar.gz
@@ -302,7 +302,7 @@ jobs:
           prerelease: true
 
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
           name: sct-apps_centos7
         continue-on-error: true
@@ -319,7 +319,7 @@ jobs:
           asset_content_type: application/gzip
         continue-on-error: true
 
-#      - uses: actions/download-artifact@v1
+#      - uses: actions/download-artifact@v4
 #        with:
 #          name: sct-apps_centos8
 #        continue-on-error: true
@@ -336,7 +336,7 @@ jobs:
 #          asset_content_type: application/gzip
 #        continue-on-error: true
 #
-#      - uses: actions/download-artifact@v1
+#      - uses: actions/download-artifact@v4
 #        with:
 #          name: sct-apps_archlinux
 #        continue-on-error: true
@@ -351,7 +351,7 @@ jobs:
 #          asset_content_type: application/gzip
 #        continue-on-error: true
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
           name: sct-apps_ubuntu-20.04
         continue-on-error: true
@@ -366,7 +366,7 @@ jobs:
           asset_content_type: application/gzip
         continue-on-error: true
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
           name: sct-apps_ubuntu-18.04
         continue-on-error: true
@@ -381,7 +381,7 @@ jobs:
           asset_content_type: application/gzip
         continue-on-error: true
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
           name: sct-apps_macos-10.15
         continue-on-error: true
@@ -396,7 +396,7 @@ jobs:
           asset_content_type: application/gzip
         continue-on-error: true
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
           name: sct-apps_windows-2019
         continue-on-error: true
