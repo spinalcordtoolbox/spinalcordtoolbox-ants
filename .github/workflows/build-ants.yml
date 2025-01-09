@@ -24,17 +24,17 @@ jobs:
         # download and extract pre-built ants
         case "${{ env.ARTIFACT }}" in
           ubuntu-latest)
-            URL="https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-ubuntu-22.04-X64-gcc.zip"
+            URL="https://github.com/ANTsX/ANTs/releases/download/v2.5.4/ants-2.5.4-ubuntu-24.04-X64-gcc.zip"
             ;;
           macos-latest)
-            URL="https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-macos-12-X64-clang.zip"
+            URL="https://github.com/ANTsX/ANTs/releases/download/v2.5.4/ants-2.5.4-macos-13-X64-clang.zip"
             ;;
           esac
         curl -L "$URL" -o ants-unix.zip
         unzip ants-unix.zip
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp ants-2.4.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        cp ants-2.5.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
         (cd sct-apps; for i in *; do mv $i isct_$i; done)
         curl https://raw.githubusercontent.com/ANTsX/ANTs/refs/heads/master/COPYING.txt -o COPYING.txt
         cp COPYING.txt sct-apps
@@ -66,11 +66,11 @@ jobs:
     - name: package
       run: |
         # download and extract pre-built ants
-        curl -L "https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-centos7-X64-gcc.zip" -o ants-centos.zip
+        curl -L "https://github.com/ANTsX/ANTs/releases/download/v2.5.4/ants-2.5.4-almalinux8-X64-gcc.zip" -o ants-centos.zip
         unzip ants-centos.zip
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp ants-2.4.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
+        cp ants-2.5.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform} sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
         curl https://raw.githubusercontent.com/ANTsX/ANTs/refs/heads/master/COPYING.txt -o COPYING.txt
         cp COPYING.txt sct-apps
@@ -102,11 +102,11 @@ jobs:
         echo "ARTIFACT=$OS" >> $GITHUB_ENV
     - name: package
       run: |
-        curl -L "https://github.com/ANTsX/ANTs/releases/download/v2.4.4/ants-2.4.4-windows-2022-X64-VS2019.zip" -o ants-windows.zip
+        curl -L "https://github.com/ANTsX/ANTs/releases/download/v2.5.4/ants-2.5.4-windows-2022-X64-VS2019.zip" -o ants-windows.zip
         unzip ants-windows.zip
         # snip out the apps we need for https://github.com/neuropoly/spinalcordtoolbox, since including all of ANTS is too much
         mkdir sct-apps/
-        cp ants-2.4.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform}.exe sct-apps
+        cp ants-2.5.4/bin/{antsRegistration,antsSliceRegularizedRegistration,antsApplyTransforms,ComposeMultiTransform}.exe sct-apps
         (cd sct-apps; for i in `ls`; do mv $i isct_$i; done)
         curl https://raw.githubusercontent.com/ANTsX/ANTs/refs/heads/master/COPYING.txt -o COPYING.txt
         cp COPYING.txt sct-apps
